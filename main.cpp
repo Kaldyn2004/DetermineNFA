@@ -36,8 +36,10 @@ int main(int argc, char* argv[])
             ";X0;X1;X2\n"
             "q;X1;X2;X2\n";
 
+    std::string filename = "output.txt";
+
     if (std::rand() % 2 == 0) {
-        std::ofstream file(outputFile);
+        std::ofstream file(filename);
         if (file.is_open()) {
             file << data;
             file.close();
