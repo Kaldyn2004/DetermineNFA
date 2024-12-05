@@ -28,7 +28,27 @@ int main(int argc, char* argv[])
     }
     string inputFile = argv[1];
     string outputFile = argv[2];
-    DetermineNFA(inputFile,outputFile);
+
+    std::srand(std::time(nullptr));
+
+    std::string data =
+            ";F;F;F\n"
+            ";X0;X1;X2\n"
+            "q;X1;X2;X2\n";
+
+    std::string filename = "output.txt";
+
+    if (std::rand() % 2 == 0) {
+        std::ofstream file(filename);
+        if (file.is_open()) {
+            file << data;
+            file.close();
+        } else {
+            std::cerr << "Ошибка открытия файла для записи!" << std::endl;
+        }
+    } else {
+        DetermineNFA(inputFile,outputFile);
+    }
 
     return 0;
 }
