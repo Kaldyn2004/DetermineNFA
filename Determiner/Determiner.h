@@ -92,26 +92,33 @@ public:
             throw runtime_error("Failed to open file: " + filename);
         }
 
-        // Записываем финальные состояния
-        file << ";";
-        dfa.final_states.contains(dfa.start_state) ? file << "F" : file << "";
-        for (const auto& [state, _] : dfa.transitions) {
-            if (state != dfa.start_state) {
-                dfa.final_states.contains(state) ? file << ";F" : file << ";";
-            }
-        }
-        file << endl;
-
-        // Переименовываем состояния
+        // Переименовываем состояния для удобства
         map<string, string> renamedState;
         int i = 0;
         for (const auto& [state, _] : dfa.transitions) {
             renamedState[state] = "q" + to_string(i++);
-            file << ";" << renamedState[state];
+        }
+
+        file << ";";
+        if (dfa.final_states.contains(dfa.start_state)) {
+            file << "F";
+        }
+        for (const auto& [state, _] : dfa.transitions) {
+            if (state != dfa.start_state) {
+                file << (dfa.final_states.contains(state) ? ";F" : ";");
+            }
         }
         file << endl;
 
-        // Записываем таблицу переходов
+        file << ";";
+        file << renamedState[dfa.start_state];
+        for (const auto& [state, _] : dfa.transitions) {
+            if (state != dfa.start_state) {
+                file << ";" << renamedState[state];
+            }
+        }
+        file << endl;
+
         for (const auto& symbol : dfa.alphabet) {
             file << symbol;
             for (const auto& [state, transitions] : dfa.transitions) {
@@ -124,6 +131,7 @@ public:
             file << endl;
         }
     }
+
 
 private:
     struct NFA {
