@@ -98,17 +98,39 @@ public:
             throw std::runtime_error("Failed to open file: " + filename);
         }
 
+        dfa.final_states.contains(dfa.start_state)
+        ? file << ";F"
+        : file << ";";
+
         for (const auto& [state, transitions] : dfa.transitions) {
-            dfa.final_states.contains(state)
-            ? file << ";F"
-            : file << ";";
+            if (state != dfa.start_state)
+            {
+                dfa.final_states.contains(state)
+                ? file << ";F"
+                : file << ";";
+            }
         }
         file << endl;
         std::map<string, string> renamedState;
+
         int i;
         for (const auto& [state, transitions] : dfa.transitions) {
-            renamedState[state] = "q" + to_string(i);
-           file << ";" << renamedState[state];
+            if (state == dfa.start_state)
+            {
+                renamedState[state] = "q" + to_string(i);
+                file << ";" << renamedState[state];
+            }
+
+            i++;
+        }
+
+        i = 0;
+        for (const auto& [state, transitions] : dfa.transitions) {
+            if (state != dfa.start_state)
+            {
+                renamedState[state] = "q" + to_string(i);
+                file << ";" << renamedState[state];
+            }
             i++;
         }
         file << endl;
@@ -117,39 +139,31 @@ public:
             file << symbol;
 
             for (const auto& [state, transitions] : dfa.transitions) {
-                if (transitions.count(symbol)) {
-                    file << ";" << renamedState[transitions.at(symbol)];
-                } else
+                if (state == dfa.start_state)
                 {
-                    file << ";";
+                    if (transitions.count(symbol)) {
+                        file << ";" << renamedState[transitions.at(symbol)];
+                    } else
+                    {
+                        file << ";";
+                    }
+                }
+
+            }
+
+            for (const auto& [state, transitions] : dfa.transitions) {
+                if (state != dfa.start_state)
+                {
+                    if (transitions.count(symbol)) {
+                        file << ";" << renamedState[transitions.at(symbol)];
+                    } else
+                    {
+                        file << ";";
+                    }
                 }
             }
             file << endl;
         }
-
-        for (const auto& [state, transitions] : dfa.transitions) {
-            std::cout << state;
-            for (const auto& symbol : dfa.alphabet) {
-                if (transitions.count(symbol)) {
-                    std::cout << "\t" << transitions.at(symbol);
-                } else {
-                    std::cout << "\t-"; // Для отсутствующих переходов
-                }
-            }
-            std::cout << "\n";
-        }
-
-        // Вывод финальных состояний
-        std::cout << "\nFinal States:\n";
-        for (const auto& state : dfa.final_states) {
-            std::cout << state << "\n";
-        }
-
-        // Стартовое состояние
-        std::cout << "\nStart State:\n" << dfa.start_state << "\n";
-
-
-        std::cout << "DFA has been written to file: " << filename << "\n";
     }
 
 
