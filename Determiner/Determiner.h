@@ -7,31 +7,31 @@ class Determiner
 public:
     void ReadNFA(const string &filename)
     {
-        std::ifstream file(filename);
+        ifstream file(filename);
         if (!file.is_open()) {
-            throw std::runtime_error("Failed to open file: " + filename);
+            throw runtime_error("Failed to open file: " + filename);
         }
 
-        std::string line;
-        std::vector<std::string> headers;
+        string line;
+        vector<string> headers;
 
-        if (std::getline(file, line))
+        if (getline(file, line))
         {
-            std::istringstream headerStream(line);
-            std::string cell;
-            while (std::getline(headerStream, cell, ';'))
+            istringstream headerStream(line);
+            string cell;
+            while (getline(headerStream, cell, ';'))
             {
                 headers.push_back(cell);
             }
         }
 
-        if (std::getline(file, line))
+        if (getline(file, line))
         {
-            std::istringstream stateStream(line);
-            std::string cell;
+            istringstream stateStream(line);
+            string cell;
             int i = 0;
 
-            while (std::getline(stateStream, cell, ';'))
+            while (getline(stateStream, cell, ';'))
             {
                 if (!cell.empty())
                 {
@@ -45,11 +45,11 @@ public:
             }
         }
 
-        while (std::getline(file, line)) {
-            std::istringstream rowStream(line);
-            std::string cell;
+        while (getline(file, line)) {
+            istringstream rowStream(line);
+            string cell;
             string symbol;
-            if (std::getline(rowStream, cell, ';')) {
+            if (getline(rowStream, cell, ';')) {
                 if (!cell.empty())
                 {
                     nfa.alphabet.push_back(cell);
@@ -58,13 +58,13 @@ public:
             }
 
             int i = 0;
-            while (std::getline(rowStream, cell, ';'))
+            while (getline(rowStream, cell, ';'))
             {
                 if (!cell.empty())
                 {
-                    std::istringstream destStream(cell);
-                    std::string destination;
-                    while (std::getline(destStream, destination, ',')) {
+                    istringstream destStream(cell);
+                    string destination;
+                    while (getline(destStream, destination, ',')) {
                         nfa.transitions[nfa.states[i]][symbol].push_back(destination);
                     }
                 }
@@ -84,18 +84,18 @@ public:
     }
 
     void СomputeAllEpsilonClosures() {
-        std::cout << nfa.startState << std::endl;
+        cout << nfa.startState << endl;
         for (const auto& state : nfa.states) {
-            std::cout << state << std::endl;
-            std::vector<std::string> closure = computeEpsilonClosure(state, nfa.transitions);
+            cout << state << endl;
+            vector<string> closure = computeEpsilonClosure(state, nfa.transitions);
             nfa.epsilonClosures.emplace_back(state, closure);
         }
     }
 
-    void WriteDFAToFile(const std::string& filename) const {
-        std::ofstream file(filename);
+    void WriteDFAToFile(const string& filename) const {
+        ofstream file(filename);
         if (!file.is_open()) {
-            throw std::runtime_error("Failed to open file: " + filename);
+            throw runtime_error("Failed to open file: " + filename);
         }
 
         dfa.final_states.contains(dfa.start_state)
@@ -111,7 +111,7 @@ public:
             }
         }
         file << endl;
-        std::map<string, string> renamedState;
+        map<string, string> renamedState;
 
         int i;
         for (const auto& [state, transitions] : dfa.transitions) {
@@ -167,15 +167,15 @@ public:
     }
 
 
-    static std::vector<std::string> computeEpsilonClosure(
-            const std::string& state,
-            const std::unordered_map<std::string, std::unordered_map<std::string, std::vector<std::string>>>& transitions
+    static vector<string> computeEpsilonClosure(
+            const string& state,
+            const unordered_map<string, unordered_map<string, vector<string>>>& transitions
     ) {
-        std::unordered_set<std::string> closure;
-        std::vector<std::string> stack = {state};
+        unordered_set<string> closure;
+        vector<string> stack = {state};
 
         while (!stack.empty()) {
-            std::string current = stack.back();
+            string current = stack.back();
             stack.pop_back();
 
             if (closure.find(current) == closure.end()) {
@@ -193,24 +193,24 @@ public:
             }
         }
 
-        return std::vector<std::string>(closure.begin(), closure.end());
+        return vector<string>(closure.begin(), closure.end());
     }
 
 private:
     struct NFA
     {
-        std::vector<std::string> states;
-        std::vector<std::string> alphabet;
-        std::unordered_map<std::string, std::unordered_map<std::string, std::vector<std::string>>> transitions;
-        std::string startState;
-        std::vector<std::string> finalStates;
-        std::vector<std::pair<std::string, std::vector<std::string>>> epsilonClosures;
+        vector<string> states;
+        vector<string> alphabet;
+        unordered_map<string, unordered_map<string, vector<string>>> transitions;
+        string startState;
+        vector<string> finalStates;
+        vector<pair<string, vector<string>>> epsilonClosures;
     };
 
     struct DFA
     {
         set<string> states;
-        std::vector<std::string> alphabet;
+        vector<string> alphabet;
         map<string, map<string, string>> transitions;
         set<string> final_states;
         string start_state;
@@ -245,30 +245,30 @@ private:
 
     void BuildDFATransitionTable() {
         // Очередь для обработки состояний
-        std::queue<std::set<std::string>> stateQueue;
+        queue<set<string>> stateQueue;
 
         // Начальное состояние ДКА — ε-замыкание начального состояния НКА
         auto startClosure = EpsilonClosure(nfa.startState);
         stateQueue.push(startClosure);
 
         // Множество всех уникальных состояний (для предотвращения дублирования)
-        std::set<std::set<std::string>> processedStates;
+        set<set<string>> processedStates;
         processedStates.insert(startClosure);
 
         // Устанавливаем начальное состояние ДКА
-        std::string startStateName = StateSetToString(startClosure);
+        string startStateName = StateSetToString(startClosure);
         dfa.start_state = startStateName;
 
         // Алфавит ДКА (без "ε")
-        std::vector<std::string> dfaAlphabet(nfa.alphabet.begin(), nfa.alphabet.end());
-        auto it = std::find(dfaAlphabet.begin(),dfaAlphabet.end(), "ε");
+        vector<string> dfaAlphabet(nfa.alphabet.begin(), nfa.alphabet.end());
+        auto it = find(dfaAlphabet.begin(),dfaAlphabet.end(), "ε");
         if(it != dfaAlphabet.end()) //если найден
             dfaAlphabet.erase(it);
         dfa.alphabet = dfaAlphabet;
 
         // Проверяем финальность начального состояния
         for (const auto& state : startClosure) {
-            if (std::find(nfa.finalStates.begin(), nfa.finalStates.end(), state) != nfa.finalStates.end()) {
+            if (find(nfa.finalStates.begin(), nfa.finalStates.end(), state) != nfa.finalStates.end()) {
                 dfa.final_states.insert(startStateName);
                 break;
             }
@@ -279,10 +279,10 @@ private:
             auto currentStates = stateQueue.front();
             stateQueue.pop();
 
-            std::string currentStateName = StateSetToString(currentStates);
+            string currentStateName = StateSetToString(currentStates);
 
             for (const auto& symbol : dfaAlphabet) {
-                std::set<std::string> reachable;
+                set<string> reachable;
 
                 // Ищем состояния, достижимые по текущему символу
                 for (const auto& state : currentStates) {
@@ -295,7 +295,7 @@ private:
                 }
 
                 if (!reachable.empty()) {
-                    std::string reachableStateName = StateSetToString(reachable);
+                    string reachableStateName = StateSetToString(reachable);
 
                     // Добавляем переход
                     dfa.transitions[currentStateName][symbol] = reachableStateName;
@@ -307,7 +307,7 @@ private:
 
                         // Проверяем, является ли новое состояние финальным
                         for (const auto& state : reachable) {
-                            if (std::find(nfa.finalStates.begin(), nfa.finalStates.end(), state) != nfa.finalStates.end()) {
+                            if (find(nfa.finalStates.begin(), nfa.finalStates.end(), state) != nfa.finalStates.end()) {
                                 dfa.final_states.insert(reachableStateName);
                                 break;
                             }
@@ -319,43 +319,43 @@ private:
     }
 
 // Вспомогательный метод для преобразования множества состояний в строку
-    std::string StateSetToString(const std::set<std::string>& states) {
-        std::vector<std::string> sortedStates(states.begin(), states.end());
-        return std::accumulate(std::next(sortedStates.begin()), sortedStates.end(),
-                                     sortedStates[0], [](std::string a, std::string b) { return a + "," + b; });
+    string StateSetToString(const set<string>& states) {
+        vector<string> sortedStates(states.begin(), states.end());
+        return accumulate(next(sortedStates.begin()), sortedStates.end(),
+                                     sortedStates[0], [](string a, string b) { return a + "," + b; });
     }
 
     void PrintDFATransitionTable() const {
-        std::cout << "DFA Transition Table:\n";
+        cout << "DFA Transition Table:\n";
 
         // Выводим заголовок
-        std::cout << "State";
+        cout << "State";
         for (const auto& symbol : dfa.alphabet) {
-            std::cout << "\t" << symbol;
+            cout << "\t" << symbol;
         }
-        std::cout << "\n";
+        cout << "\n";
 
         // Выводим каждую строку таблицы переходов
         for (const auto& [state, transitions] : dfa.transitions) {
-            std::cout << state;
+            cout << state;
             for (const auto& symbol : dfa.alphabet) {
                 if (transitions.count(symbol)) {
-                    std::cout << "\t" << transitions.at(symbol);
+                    cout << "\t" << transitions.at(symbol);
                 } else {
-                    std::cout << "\t-"; // Для отсутствующих переходов
+                    cout << "\t-"; // Для отсутствующих переходов
                 }
             }
-            std::cout << "\n";
+            cout << "\n";
         }
 
         // Вывод финальных состояний
-        std::cout << "\nFinal States:\n";
+        cout << "\nFinal States:\n";
         for (const auto& state : dfa.final_states) {
-            std::cout << state << "\n";
+            cout << state << "\n";
         }
 
         // Стартовое состояние
-        std::cout << "\nStart State:\n" << dfa.start_state << "\n";
+        cout << "\nStart State:\n" << dfa.start_state << "\n";
     }
 };
 
